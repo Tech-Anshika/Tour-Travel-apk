@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Travel Advisor India",
+    "slug": "travel-advisor-india",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "description": "Discover amazing places, create unforgettable memories, and explore India's most beautiful destinations with our comprehensive travel guide.",
+    "splash": {
+      "image": "./assets/hero.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#00BCC9"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.traveladvisor.india",
+      "buildNumber": "1.0.0"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#00BCC9"
+      },
+      "package": "com.traveladvisor.india",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CALL_PHONE",
+        "INTERNET"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "travel-advisor-india"
+      }
+    }
+  }
+}
