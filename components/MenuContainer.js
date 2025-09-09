@@ -9,30 +9,48 @@ const MenuContainer = ({ title, imageSrc, type, setType }) => {
   
   return (
     <TouchableOpacity
-      className="items-center justify-center space-y-3 flex-1"
+      className="items-center justify-center space-y-3 flex-1 mx-1"
       onPress={handlePress}
     >
       <View
-        className={`w-20 h-20 p-2 shadow-lg rounded-2xl items-center justify-center ${
+        className={`shadow-lg rounded-2xl items-center justify-center overflow-hidden ${
           isActive 
             ? "bg-[#0B646B] shadow-[#0B646B]/25" 
-            : "bg-gray-50 border-2 border-gray-200"
+            : "bg-white border-2 border-gray-200"
         }`}
+        style={{
+          width: 72,
+          height: 72,
+        }}
       >
         <Image 
           source={imageSrc} 
-          className="w-full h-full"
-          resizeMode="cover"
           style={{
-            backgroundColor: isActive ? 'transparent' : '#f8f9fa',
-            transform: [{ scale: 1.2 }]
+            width: 68,
+            height: 68,
+            borderRadius: 16,
+            opacity: isActive ? 0.9 : 1,
           }}
+          resizeMode="cover"
         />
+        {isActive && (
+          <View 
+            style={{
+              position: 'absolute',
+              width: 68,
+              height: 68,
+              borderRadius: 16,
+              backgroundColor: 'rgba(11, 100, 107, 0.3)',
+            }}
+          />
+        )}
       </View>
       <Text 
-        className={`text-sm font-semibold text-center ${
+        className={`text-xs font-semibold text-center leading-4 ${
           isActive ? "text-[#0B646B]" : "text-[#527283]"
         }`}
+        numberOfLines={1}
+        adjustsFontSizeToFit
       >
         {title}
       </Text>

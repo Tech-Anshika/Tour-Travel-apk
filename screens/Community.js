@@ -18,6 +18,8 @@ const Community = () => {
   const [selectedLanguage, setSelectedLanguage] = useState("english");
   const [userMessage, setUserMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
+  const [chatMode, setChatMode] = useState("community"); // "community" or "emergency"
+  const [isTyping, setIsTyping] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -123,6 +125,122 @@ const Community = () => {
     }
   ];
 
+  // Enhanced AI responses based on chat mode and user input
+  const getCommunityResponse = (userText) => {
+    const lowerText = userText.toLowerCase();
+    
+    // Travel and tourism responses
+    if (lowerText.includes('travel') || lowerText.includes('trip') || lowerText.includes('visit')) {
+      return [
+        "That sounds like an exciting trip! I'd love to help you plan. What destinations are you considering?",
+        "Travel planning can be so much fun! Are you looking for adventure, relaxation, or cultural experiences?",
+        "I'm here to help with your travel plans! Do you need recommendations for places to visit, food to try, or activities?",
+        "Exploring new places is amazing! What type of experiences are you most interested in?"
+      ];
+    }
+    
+    // Food and restaurant responses
+    if (lowerText.includes('food') || lowerText.includes('restaurant') || lowerText.includes('eat')) {
+      return [
+        "Food is one of the best parts of traveling! Are you looking for local cuisine recommendations?",
+        "I love talking about food! What type of cuisine are you in the mood for?",
+        "The local food scene here is incredible! Would you like some restaurant suggestions?",
+        "Great choice! Food experiences create the best travel memories. Any dietary preferences I should know about?"
+      ];
+    }
+    
+    // Local culture and attractions
+    if (lowerText.includes('culture') || lowerText.includes('attraction') || lowerText.includes('temple') || lowerText.includes('monument')) {
+      return [
+        "Indian culture is so rich and diverse! Are you interested in historical sites, temples, or local traditions?",
+        "There are so many amazing cultural experiences here! What aspects of local culture interest you most?",
+        "The cultural heritage in this region is fascinating! Would you like recommendations for must-visit sites?",
+        "Cultural exploration is wonderful! Are you looking for guided tours or prefer to explore independently?"
+      ];
+    }
+    
+    // Shopping and local markets
+    if (lowerText.includes('shop') || lowerText.includes('market') || lowerText.includes('buy')) {
+      return [
+        "Shopping for local crafts and souvenirs is so much fun! Are you looking for traditional items or modern goods?",
+        "The local markets are vibrant and full of treasures! What kind of shopping experience are you after?",
+        "I can help you find the best shopping spots! Are you interested in textiles, jewelry, spices, or handicrafts?",
+        "Great question! Local markets offer authentic experiences. Would you like tips on bargaining too?"
+      ];
+    }
+    
+    // Weather and best time to visit
+    if (lowerText.includes('weather') || lowerText.includes('climate') || lowerText.includes('season')) {
+      return [
+        "Weather planning is smart! The climate here varies by season. What time of year are you planning to visit?",
+        "Good thinking about the weather! Different seasons offer different experiences. Are you flexible with your dates?",
+        "The weather can really make or break a trip! Are you looking for warm weather, cool climate, or festival seasons?",
+        "Weather is important for planning! Would you like month-by-month weather information?"
+      ];
+    }
+    
+    // Transportation and getting around
+    if (lowerText.includes('transport') || lowerText.includes('taxi') || lowerText.includes('bus') || lowerText.includes('train')) {
+      return [
+        "Getting around efficiently makes travel so much better! Are you looking for budget options or convenience?",
+        "Transportation here has many options! Would you prefer trains, buses, taxis, or ride-sharing apps?",
+        "Great question about transport! Are you traveling within the city or between different cities?",
+        "I can help with transportation tips! Do you need information about booking, costs, or safety?"
+      ];
+    }
+    
+    // Accommodation
+    if (lowerText.includes('hotel') || lowerText.includes('stay') || lowerText.includes('accommodation')) {
+      return [
+        "Finding the right place to stay is crucial! What's your budget range and preferred area?",
+        "Accommodation options here are diverse! Are you looking for luxury, mid-range, or budget-friendly stays?",
+        "Good question about hotels! Do you prefer central locations or quieter areas away from the hustle?",
+        "I can help you find perfect accommodation! Any specific amenities or requirements you need?"
+      ];
+    }
+    
+    // General greetings and friendly responses
+    if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('hey')) {
+      return [
+        "Hello there! Welcome to our community chat! I'm here to help with any travel questions or just to chat. How's your day going?",
+        "Hi! Great to meet you! I'm your friendly community assistant. Whether you need travel tips or just want to talk, I'm here!",
+        "Hey! Welcome! I love connecting with fellow travelers and locals. What brings you here today?",
+        "Hello! So nice to have you in our community! I'm here 24/7 to chat about travel, local tips, or anything else!"
+      ];
+    }
+    
+    // Thank you responses
+    if (lowerText.includes('thank') || lowerText.includes('thanks')) {
+      return [
+        "You're very welcome! I'm always happy to help. Is there anything else you'd like to know?",
+        "My pleasure! That's what I'm here for. Feel free to ask me anything else!",
+        "You're so welcome! I love being helpful. Any other questions or just want to chat more?",
+        "Happy to help! Don't hesitate to reach out anytime you need assistance or just want to talk!"
+      ];
+    }
+    
+    // Default friendly responses
+    return [
+      "That's interesting! Tell me more about what you're thinking. I'm here to chat and help however I can!",
+      "I'd love to hear more about that! What specific aspects would you like to discuss or get help with?",
+      "Thanks for sharing! I'm here to help with travel tips, local insights, or just friendly conversation. What's on your mind?",
+      "That sounds great! I enjoy our community conversations. Is there anything specific I can help you with today?",
+      "I'm here to chat and assist! Whether it's travel planning, local recommendations, or just friendly talk, I'm all ears!",
+      "Wonderful! I love connecting with people in our community. What would you like to explore or discuss?",
+      "That's nice! I'm your friendly community assistant, ready to help with anything travel-related or just have a good chat!"
+    ];
+  };
+
+  const getEmergencyResponse = (userText) => {
+    return [
+      "I understand you need help. I'm here to assist you 24/7. Stay calm and let me know what's happening.",
+      "Stay calm. I'll help you find the right assistance. Can you tell me more about your situation?",
+      "I'm here to help you through this. Are you in immediate danger or need emergency services?",
+      "Don't worry, I'm here to assist. Please tell me what kind of help you need right now.",
+      "I'm connecting you with the right resources. Can you describe your current situation?"
+    ];
+  };
+
   const handleSendMessage = () => {
     if (!userMessage.trim()) return;
     
@@ -134,16 +252,13 @@ const Community = () => {
     };
     
     setChatMessages(prev => [...prev, newMessage]);
+    setIsTyping(true);
     
-    // Simulate AI response
+    // Simulate AI response with typing indicator
     setTimeout(() => {
-      const responses = [
-        "I understand you need help. I'm here to assist you 24/7.",
-        "Stay calm. I'll help you find the right assistance.",
-        "I've noted your location. Emergency services have been notified.",
-        "Don't worry, help is on the way. Keep this chat open.",
-        "I'm connecting you with local volunteers who speak your language."
-      ];
+      const responses = chatMode === "community" 
+        ? getCommunityResponse(userMessage)
+        : getEmergencyResponse(userMessage);
       
       const aiResponse = {
         id: Date.now() + 1,
@@ -153,7 +268,8 @@ const Community = () => {
       };
       
       setChatMessages(prev => [...prev, aiResponse]);
-    }, 1000);
+      setIsTyping(false);
+    }, 1500);
     
     setUserMessage("");
   };
@@ -174,8 +290,10 @@ const Community = () => {
         </TouchableOpacity>
         
         <View className="items-center">
-          <Text className="text-2xl text-[#7C3AED] font-bold">Community Help</Text>
-          <Text className="text-sm text-[#6B46C1] font-medium">Multilingual Panic Assistant</Text>
+          <Text className="text-2xl text-[#7C3AED] font-bold">Community Chat</Text>
+          <Text className="text-sm text-[#6B46C1] font-medium">
+            {chatMode === "community" ? "Travel & Community Assistant" : "Emergency Panic Assistant"}
+          </Text>
         </View>
         
         <TouchableOpacity className="w-10 h-10 bg-white rounded-full items-center justify-center shadow-lg">
@@ -184,6 +302,37 @@ const Community = () => {
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Chat Mode Toggle */}
+        <View className="mx-6 mt-6">
+          <Text className="text-lg font-bold text-[#374151] mb-4">Chat Mode</Text>
+          <View className="flex-row bg-gray-100 rounded-full p-1">
+            <TouchableOpacity
+              onPress={() => setChatMode("community")}
+              className={`flex-1 px-4 py-3 rounded-full ${
+                chatMode === "community" ? "bg-[#7C3AED]" : "bg-transparent"
+              }`}
+            >
+              <Text className={`text-sm font-semibold text-center ${
+                chatMode === "community" ? "text-white" : "text-[#374151]"
+              }`}>
+                💬 Community Chat
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setChatMode("emergency")}
+              className={`flex-1 px-4 py-3 rounded-full ${
+                chatMode === "emergency" ? "bg-red-500" : "bg-transparent"
+              }`}
+            >
+              <Text className={`text-sm font-semibold text-center ${
+                chatMode === "emergency" ? "text-white" : "text-[#374151]"
+              }`}>
+                🚨 Emergency Help
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Language Selection */}
         <View className="mx-6 mt-6">
           <Text className="text-lg font-bold text-[#374151] mb-4">Select Your Language</Text>
@@ -269,60 +418,154 @@ const Community = () => {
           </View>
         </View>
 
+        {/* Suggested Topics (Community Mode Only) */}
+        {chatMode === "community" && (
+          <View className="mx-6 mt-6">
+            <Text className="text-lg font-bold text-[#374151] mb-4">Popular Topics</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex-row space-x-3">
+                {[
+                  "🏛️ Best attractions to visit",
+                  "🍽️ Local food recommendations", 
+                  "🚗 Transportation tips",
+                  "🏨 Hotel suggestions",
+                  "🛍️ Shopping spots",
+                  "🌤️ Weather information",
+                  "🎭 Cultural experiences",
+                  "💰 Budget travel tips"
+                ].map((topic, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => setUserMessage(topic.substring(2))}
+                    className="bg-white rounded-full px-4 py-2 border border-gray-200 shadow-sm"
+                  >
+                    <Text className="text-sm text-[#374151] font-medium">{topic}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        )}
+
         {/* AI Chat Assistant */}
         <View className="mx-6 mt-8 mb-8">
-          <Text className="text-lg font-bold text-[#374151] mb-4">AI Panic Assistant</Text>
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-lg font-bold text-[#374151]">
+              {chatMode === "community" ? "Community Assistant" : "Emergency Assistant"}
+            </Text>
+            <View className="flex-row items-center">
+              <View className={`w-2 h-2 rounded-full mr-2 ${
+                chatMode === "community" ? "bg-green-500" : "bg-red-500"
+              }`} />
+              <Text className="text-xs text-[#9CA3AF]">Online 24/7</Text>
+            </View>
+          </View>
+          
           <View className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
             {/* Chat Messages */}
-            <ScrollView className="h-64 p-4" showsVerticalScrollIndicator={false}>
+            <ScrollView className="h-80 p-4" showsVerticalScrollIndicator={false}>
               {chatMessages.length === 0 ? (
                 <View className="flex-1 items-center justify-center">
-                  <FontAwesome name="comments" size={48} color="#D1D5DB" />
-                  <Text className="text-[#9CA3AF] text-center mt-4">
-                    Start a conversation with our AI assistant.{'\n'}
-                    Available 24/7 in multiple languages.
+                  <FontAwesome 
+                    name={chatMode === "community" ? "comments" : "life-ring"} 
+                    size={48} 
+                    color="#D1D5DB" 
+                  />
+                  <Text className="text-[#9CA3AF] text-center mt-4 text-base font-medium">
+                    {chatMode === "community" 
+                      ? "Welcome to Community Chat! 👋\n\nI'm here to help with travel tips, local recommendations, and friendly conversation. What would you like to talk about?"
+                      : "Emergency Assistant Ready 🚨\n\nI'm here to help in urgent situations. Available 24/7 in multiple languages."
+                    }
                   </Text>
                 </View>
               ) : (
-                chatMessages.map((message) => (
-                  <View
-                    key={message.id}
-                    className={`mb-3 ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
-                  >
+                <>
+                  {chatMessages.map((message) => (
                     <View
-                      className={`max-w-[80%] p-3 rounded-2xl ${
-                        message.sender === 'user'
-                          ? 'bg-[#7C3AED] rounded-br-md'
-                          : 'bg-gray-100 rounded-bl-md'
-                      }`}
+                      key={message.id}
+                      className={`mb-4 ${message.sender === 'user' ? 'items-end' : 'items-start'}`}
                     >
-                      <Text
-                        className={`text-sm ${
-                          message.sender === 'user' ? 'text-white' : 'text-[#374151]'
+                      <View
+                        className={`max-w-[85%] p-3 rounded-2xl ${
+                          message.sender === 'user'
+                            ? chatMode === "community" 
+                              ? 'bg-[#7C3AED] rounded-br-md'
+                              : 'bg-red-500 rounded-br-md'
+                            : 'bg-gray-100 rounded-bl-md'
                         }`}
                       >
-                        {message.text}
-                      </Text>
+                        <Text
+                          className={`text-sm leading-5 ${
+                            message.sender === 'user' ? 'text-white' : 'text-[#374151]'
+                          }`}
+                        >
+                          {message.text}
+                        </Text>
+                      </View>
+                      <Text className="text-xs text-[#9CA3AF] mt-1">{message.timestamp}</Text>
                     </View>
-                    <Text className="text-xs text-[#9CA3AF] mt-1">{message.timestamp}</Text>
-                  </View>
-                ))
+                  ))}
+                  
+                  {/* Typing Indicator */}
+                  {isTyping && (
+                    <View className="mb-4 items-start">
+                      <View className="bg-gray-100 rounded-2xl rounded-bl-md p-3">
+                        <View className="flex-row items-center">
+                          <Text className="text-[#9CA3AF] text-sm mr-2">Assistant is typing</Text>
+                          <View className="flex-row space-x-1">
+                            <Animatable.View 
+                              animation="fadeInOut" 
+                              iterationCount="infinite" 
+                              duration={800}
+                              className="w-2 h-2 bg-[#9CA3AF] rounded-full"
+                            />
+                            <Animatable.View 
+                              animation="fadeInOut" 
+                              iterationCount="infinite" 
+                              duration={800}
+                              delay={200}
+                              className="w-2 h-2 bg-[#9CA3AF] rounded-full"
+                            />
+                            <Animatable.View 
+                              animation="fadeInOut" 
+                              iterationCount="infinite" 
+                              duration={800}
+                              delay={400}
+                              className="w-2 h-2 bg-[#9CA3AF] rounded-full"
+                            />
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                </>
               )}
             </ScrollView>
 
             {/* Message Input */}
-            <View className="flex-row items-center p-4 border-t border-gray-100">
+            <View className="flex-row items-center p-4 border-t border-gray-100 bg-gray-50">
               <TextInput
                 value={userMessage}
                 onChangeText={setUserMessage}
-                placeholder="Type your message..."
-                className="flex-1 text-base text-[#374151] mr-3"
+                placeholder={chatMode === "community" 
+                  ? "Ask about travel, food, places..." 
+                  : "Describe your emergency situation..."
+                }
+                className="flex-1 text-base text-[#374151] mr-3 bg-white rounded-full px-4 py-2 border border-gray-200"
                 placeholderTextColor="#9CA3AF"
                 multiline
+                maxLength={500}
               />
               <TouchableOpacity
                 onPress={handleSendMessage}
-                className="w-10 h-10 bg-[#7C3AED] rounded-full items-center justify-center"
+                disabled={!userMessage.trim()}
+                className={`w-12 h-12 rounded-full items-center justify-center ${
+                  userMessage.trim() 
+                    ? chatMode === "community" 
+                      ? "bg-[#7C3AED]" 
+                      : "bg-red-500"
+                    : "bg-gray-300"
+                }`}
               >
                 <FontAwesome name="send" size={16} color="white" />
               </TouchableOpacity>

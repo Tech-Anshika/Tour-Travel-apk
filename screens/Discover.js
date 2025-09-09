@@ -12,12 +12,13 @@ import {
 } from "react-native";
 import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { Attractions, Avatar, Hotels, NotFound, Restaurants } from "../assets";
+import { Attractions, Avatar, Hotels, NotFound, Restaurants, Guide } from "../assets";
 import MenuContainer from "../components/MenuContainer";
 
 import { FontAwesome } from "@expo/vector-icons";
 import ItemCarDontainer from "../components/ItemCarDontainer";
-import { getPlacesData, getIndiaPlacesData, searchIndianPlaces } from "../api";
+import GuiderCard from "../components/GuiderCard";
+import { getIndiaPlacesData, searchIndianPlaces, getGuiders } from "../api";
 
 const Discover = () => {
   const navigation = useNavigation();
@@ -26,11 +27,7 @@ const Discover = () => {
   const [type, setType] = useState("restaurants");
   const [isLoading, setIsLoading] = useState(false);
   const [mainData, setMainData] = useState([]);
-  const [bl_lat, setBl_lat] = useState(null);
-  const [bl_lng, setBl_lng] = useState(null);
-  const [tr_lat, setTr_lat] = useState(null);
-  const [tr_lng, setTr_lng] = useState(null);
-  const [showIndiaPlaces, setShowIndiaPlaces] = useState(true);
+  const [guidersData, setGuidersData] = useState([]);
   const [selectedState, setSelectedState] = useState("Delhi");
   const [searchText, setSearchText] = useState("");
 
@@ -68,32 +65,27 @@ const Discover = () => {
     if (query) {
       setIsLoading(true);
       try {
-        if (showIndiaPlaces) {
-          const results = await searchIndianPlaces(query, type);
-          setMainData(results);
-          
-          // Also update the selected state based on search
-          const states = ["Delhi", "Mumbai", "Goa", "Rajasthan", "Kerala", "Tamil Nadu", "Uttar Pradesh"];
-          const cityToState = {
-            "mumbai": "Mumbai",
-            "delhi": "Delhi",
-            "goa": "Goa",
-            "jaipur": "Rajasthan",
-            "kochi": "Kerala",
-            "kerala": "Kerala",
-            "chennai": "Tamil Nadu"
-          };
-          
-          const lowerQuery = query.toLowerCase();
-          for (const [city, state] of Object.entries(cityToState)) {
-            if (lowerQuery.includes(city)) {
-              setSelectedState(state);
-              break;
-            }
+        const results = await searchIndianPlaces(query, type);
+        setMainData(results);
+        
+        // Also update the selected state based on search
+        const states = ["Delhi", "Mumbai", "Goa", "Rajasthan", "Kerala", "Tamil Nadu", "Uttar Pradesh"];
+        const cityToState = {
+          "mumbai": "Mumbai",
+          "delhi": "Delhi",
+          "goa": "Goa",
+          "jaipur": "Rajasthan",
+          "kochi": "Kerala",
+          "kerala": "Kerala",
+          "chennai": "Tamil Nadu"
+        };
+        
+        const lowerQuery = query.toLowerCase();
+        for (const [city, state] of Object.entries(cityToState)) {
+          if (lowerQuery.includes(city)) {
+            setSelectedState(state);
+            break;
           }
-        } else {
-          // For international search, you could implement a different API call
-          console.log("International search for:", query);
         }
       } catch (error) {
         console.log("Search error:", error);
@@ -105,24 +97,18 @@ const Discover = () => {
   useEffect(() => {
     setIsLoading(true);
     
-    if (showIndiaPlaces) {
-      // Use India Tourism API
-      getIndiaPlacesData(type, selectedState).then((data) => {
-        setMainData(data);
-        setInterval(() => {
-          setIsLoading(false);
-        }, 1500);
-      });
-    } else {
-      // Use original international API
-      getPlacesData(bl_lat, bl_lng, tr_lat, tr_lng, type).then((data) => {
-        setMainData(data);
-        setInterval(() => {
-          setIsLoading(false);
-        }, 2000);
-      });
-    }
-  }, [bl_lat, bl_lng, tr_lat, tr_lng, type, showIndiaPlaces, selectedState]);
+    // Use India Tourism API
+    getIndiaPlacesData(type, selectedState).then((data) => {
+      setMainData(data);
+      setInterval(() => {
+        setIsLoading(false);
+      }, 1500);
+    });
+    
+    // Load guiders data for the selected state
+    const guiders = getGuiders(selectedState);
+    setGuidersData(guiders);
+  }, [type, selectedState]);
 
   return (
     <SafeAreaView className="flex-1 bg-gradient-to-b from-blue-50 to-white relative pt-8" {...panResponder.panHandlers}>
@@ -175,7 +161,7 @@ const Discover = () => {
           <TextInput
             value={searchText}
             onChangeText={setSearchText}
-            placeholder={showIndiaPlaces ? "Search Indian cities (e.g., Mumbai, Jaipur, Kochi)" : "Type destination"}
+            placeholder="Search Indian cities (e.g., Mumbai, Jaipur, Kochi)"
             className="flex-1 text-base text-gray-700"
             onSubmitEditing={handleManualSearch}
             placeholderTextColor="#9CA3AF"
@@ -220,7 +206,14 @@ const Discover = () => {
         </View>
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-          <View className="flex-row items-center justify-evenly px-4 mt-8 bg-white/70 py-6 mx-4 rounded-2xl shadow-sm">
+          <View className="flex-row items-center justify-evenly px-2 mt-8 bg-white/70 py-6 mx-4 rounded-2xl shadow-sm"
+            style={{
+              shadowColor: '#0B646B',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 3,
+            }}>
             <MenuContainer
               key={"hotels"}
               title="Hotels"
@@ -244,78 +237,60 @@ const Discover = () => {
               type={type}
               setType={setType}
             />
+
+            <MenuContainer
+              key={"guiders"}
+              title="Guiders"
+              imageSrc={Guide}
+              type={type}
+              setType={setType}
+            />
           </View>
 
           <View className="mt-6">
-            {/* India/International Toggle */}
-            <View className="flex-row items-center justify-center px-6 mb-4">
-              <View className="flex-row bg-gray-100 rounded-full p-1">
-                <TouchableOpacity
-                  onPress={() => setShowIndiaPlaces(true)}
-                  className={`px-6 py-2 rounded-full ${
-                    showIndiaPlaces ? "bg-[#0B646B]" : "bg-transparent"
-                  }`}
-                >
-                  <Text className={`text-sm font-semibold ${
-                    showIndiaPlaces ? "text-white" : "text-[#527283]"
-                  }`}>
-                    🇮🇳 India Tourism
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setShowIndiaPlaces(false)}
-                  className={`px-6 py-2 rounded-full ${
-                    !showIndiaPlaces ? "bg-[#0B646B]" : "bg-transparent"
-                  }`}
-                >
-                  <Text className={`text-sm font-semibold ${
-                    !showIndiaPlaces ? "text-white" : "text-[#527283]"
-                  }`}>
-                    🌍 International
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
             {/* State Selector for India */}
-            {showIndiaPlaces && (
-              <View className="px-6 mb-4">
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <View className="flex-row space-x-3">
-                    {["Delhi", "Mumbai", "Goa", "Rajasthan", "Kerala", "Tamil Nadu", "Uttar Pradesh"].map((state) => (
-                      <TouchableOpacity
-                        key={state}
-                        onPress={() => setSelectedState(state)}
-                        className={`px-4 py-2 rounded-full border ${
-                          selectedState === state 
-                            ? "bg-[#0B646B] border-[#0B646B]" 
-                            : "bg-white border-gray-300"
-                        }`}
-                      >
-                        <Text className={`text-xs font-medium ${
-                          selectedState === state ? "text-white" : "text-[#527283]"
-                        }`}>
-                          {state}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </ScrollView>
-              </View>
-            )}
+            <View className="px-6 mb-4">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View className="flex-row space-x-3">
+                  {["Delhi", "Mumbai", "Goa", "Rajasthan", "Kerala", "Tamil Nadu", "Uttar Pradesh"].map((state) => (
+                    <TouchableOpacity
+                      key={state}
+                      onPress={() => setSelectedState(state)}
+                      className={`px-4 py-2 rounded-full border ${
+                        selectedState === state 
+                          ? "bg-[#0B646B] border-[#0B646B]" 
+                          : "bg-white border-gray-300"
+                      }`}
+                    >
+                      <Text className={`text-xs font-medium ${
+                        selectedState === state ? "text-white" : "text-[#527283]"
+                      }`}>
+                        {state}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
 
             <View className="flex-row items-start justify-between px-6 mt-4">
               <View className="flex-1 pr-4">
                 <Text className="text-2xl text-[#2C7379] font-bold leading-7">
-                  {showIndiaPlaces ? `${selectedState} ${type.charAt(0).toUpperCase() + type.slice(1)}` : "Top Recommendations"}
+                  {type === "guiders" 
+                    ? `${selectedState} Tour Guides` 
+                    : `${selectedState} ${type.charAt(0).toUpperCase() + type.slice(1)}`
+                  }
                 </Text>
                 <Text className="text-sm text-[#527283] font-medium mt-1 leading-5">
-                  {showIndiaPlaces ? "Explore incredible India" : "Discover the best places"}
+                  {type === "guiders" 
+                    ? "Professional local guides for authentic experiences" 
+                    : "Explore incredible India"
+                  }
                 </Text>
               </View>
               <TouchableOpacity className="flex-row items-center justify-center bg-[#0B646B]/10 px-4 py-2.5 rounded-full ml-2">
                 <Text className="text-[#0B646B] text-sm font-semibold mr-2">
-                  Explore
+                  {type === "guiders" ? "Book" : "Explore"}
                 </Text>
                 <FontAwesome
                   name="long-arrow-right"
@@ -325,42 +300,69 @@ const Discover = () => {
               </TouchableOpacity>
             </View>
 
-            <View className="px-4 mt-6 flex-row items-center justify-evenly flex-wrap">
-              {mainData?.length > 0 ? (
-                <>
-                  {mainData?.map((data, i) => (
-                    <ItemCarDontainer
-                      key={i}
-                      imageSrc={
-                        data?.photo?.images?.medium?.url
-                          ? data?.photo?.images?.medium?.url
-                          : "https://cdn.pixabay.com/photo/2015/10/30/12/22/eat-1014025_1280.jpg"
-                      }
-                      title={data?.name}
-                      location={data?.location_string}
-                      data={data}
-                    />
-                  ))}
-                </>
-              ) : (
-                <>
+            {/* Display Guiders or Places */}
+            {type === "guiders" ? (
+              <View className="px-4 mt-6">
+                {guidersData?.length > 0 ? (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View className="flex-row">
+                      {guidersData.map((guider, i) => (
+                        <GuiderCard key={i} guider={guider} />
+                      ))}
+                    </View>
+                  </ScrollView>
+                ) : (
                   <View className="w-full h-[350px] items-center space-y-6 justify-center bg-gray-50/50 rounded-2xl mx-2 mt-4">
-                    <Image
-                      source={NotFound}
-                      className="w-28 h-28 object-cover opacity-80"
-                    />
+                    <FontAwesome name="user-times" size={60} color="#428288" />
                     <View className="items-center">
                       <Text className="text-xl text-[#428288] font-bold mb-2">
-                        No Places Found
+                        No Guides Available
                       </Text>
                       <Text className="text-base text-[#527283] font-medium text-center px-8">
-                        Try searching for a different location or check your internet connection
+                        No tour guides available for this location yet
                       </Text>
                     </View>
                   </View>
-                </>
-              )}
-            </View>
+                )}
+              </View>
+            ) : (
+              <View className="px-4 mt-6 flex-row items-center justify-evenly flex-wrap">
+                {mainData?.length > 0 ? (
+                  <>
+                    {mainData?.map((data, i) => (
+                      <ItemCarDontainer
+                        key={i}
+                        imageSrc={
+                          data?.photo?.images?.medium?.url
+                            ? data?.photo?.images?.medium?.url
+                            : "https://cdn.pixabay.com/photo/2015/10/30/12/22/eat-1014025_1280.jpg"
+                        }
+                        title={data?.name}
+                        location={data?.location_string}
+                        data={data}
+                      />
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <View className="w-full h-[350px] items-center space-y-6 justify-center bg-gray-50/50 rounded-2xl mx-2 mt-4">
+                      <Image
+                        source={NotFound}
+                        className="w-28 h-28 object-cover opacity-80"
+                      />
+                      <View className="items-center">
+                        <Text className="text-xl text-[#428288] font-bold mb-2">
+                          No Places Found
+                        </Text>
+                        <Text className="text-base text-[#527283] font-medium text-center px-8">
+                          Try searching for a different location or check your internet connection
+                        </Text>
+                      </View>
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
           </View>
         </ScrollView>
       )}

@@ -74,9 +74,9 @@ const ItemScreen = ({ route }) => {
           </View>
         </View>
 
-        <View className="mt-4 flex-row items-center justify-between">
+        <View className="mt-4 flex-row items-center justify-between flex-wrap">
           {data?.rating && (
-            <View className=" flex-row items-center space-x-2">
+            <View className=" flex-row items-center space-x-2 mb-2">
               <View className="w-12 h-12 rounded-2xl bg-red-100 items-center justify-center shadow-md">
                 <FontAwesome name="star" size={24} color="#D58574" />
               </View>
@@ -87,28 +87,28 @@ const ItemScreen = ({ route }) => {
             </View>
           )}
 
-          {data?.price_level && (
-            <View className=" flex-row items-center space-x-2">
+          {(data?.price_level || data?.price_per_day) && (
+            <View className=" flex-row items-center space-x-2 mb-2">
               <View className="w-12 h-12 rounded-2xl bg-red-100 items-center justify-center shadow-md">
                 <MaterialIcons name="attach-money" size={24} color="black" />
               </View>
               <View>
-                <Text className="text-[#515151]">{data?.price_level}</Text>
-                <Text className="text-[#515151]">Price Level</Text>
+                <Text className="text-[#515151]">{data?.price_level || data?.price_per_day}</Text>
+                <Text className="text-[#515151]">{data?.price_per_day ? "Price/Day" : "Price Level"}</Text>
               </View>
             </View>
           )}
 
-          {data?.bearing && (
-            <View className=" flex-row items-center space-x-2">
+          {(data?.bearing || data?.experience) && (
+            <View className=" flex-row items-center space-x-2 mb-2">
               <View className="w-12 h-12 rounded-2xl bg-red-100 items-center justify-center shadow-md">
-                <FontAwesome5 name="map-signs" size={24} color="black" />
+                <FontAwesome5 name={data?.experience ? "clock" : "map-signs"} size={24} color="black" />
               </View>
               <View>
                 <Text className="text-[#515151] capitalize">
-                  {data?.bearing}
+                  {data?.bearing || data?.experience}
                 </Text>
-                <Text className="text-[#515151]">Bearing</Text>
+                <Text className="text-[#515151]">{data?.experience ? "Experience" : "Bearing"}</Text>
               </View>
             </View>
           )}
@@ -120,24 +120,24 @@ const ItemScreen = ({ route }) => {
           </Text>
         )}
 
-        {data?.cuisine && (
+        {data?.cuisine && Array.isArray(data.cuisine) && (
           <View className="flex-row gap-2 items-center justify-start flex-wrap mt-4">
-            {data?.cuisine.map((n) => (
+            {data.cuisine.map((n, index) => (
               <TouchableOpacity
-                key={n.key}
+                key={n?.key || index}
                 className="px-2 py-1 rounded-md bg-emerald-100"
               >
-                <Text>{n.name}</Text>
+                <Text>{n?.name || n}</Text>
               </TouchableOpacity>
             ))}
           </View>
         )}
 
         <View className=" space-y-2 mt-4 bg-gray-100 rounded-2xl px-4 py-2">
-          {data?.phone && (
+          {(data?.phone || data?.contact) && (
             <View className="items-center flex-row space-x-6">
               <FontAwesome name="phone" size={24} color="#428288" />
-              <Text className="text-lg">{data?.phone}</Text>
+              <Text className="text-lg">{data?.phone || data?.contact}</Text>
             </View>
           )}
           {data?.email && (
@@ -152,12 +152,24 @@ const ItemScreen = ({ route }) => {
               <Text className="text-lg">{data?.address}</Text>
             </View>
           )}
+          {data?.speciality && (
+            <View className="items-center flex-row space-x-6">
+              <FontAwesome name="star" size={24} color="#428288" />
+              <Text className="text-lg">{data?.speciality}</Text>
+            </View>
+          )}
+          {data?.languages && Array.isArray(data?.languages) && (
+            <View className="items-center flex-row space-x-6">
+              <FontAwesome name="language" size={24} color="#428288" />
+              <Text className="text-lg">{data?.languages.join(", ")}</Text>
+            </View>
+          )}
 
-          <View className="mt-4 px-4 py-4 rounded-lg bg-[#06B2BE] items-center justify-center mb-12">
+          <TouchableOpacity className="mt-4 px-4 py-4 rounded-lg bg-[#06B2BE] items-center justify-center mb-12">
             <Text className="text-3xl font-semibold uppercase tracking-wider text-gray-100">
-              Book Now
+              {data?.speciality ? "Book Guide" : "Book Now"}
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
