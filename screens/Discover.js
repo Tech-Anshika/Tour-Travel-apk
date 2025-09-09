@@ -96,11 +96,22 @@ const Discover = () => {
 
   useEffect(() => {
     setIsLoading(true);
+
+    const stateToCityMap = {
+      "Rajasthan": "Jaipur",
+      "Kerala": "Kochi",
+      "Tamil Nadu": "Chennai",
+      "Uttar Pradesh": "Agra",
+      "Delhi": "Delhi",
+      "Mumbai": "Mumbai",
+      "Goa": "Goa"
+    };
+    const placeToSearch = stateToCityMap[selectedState] || selectedState;
     
     // Use India Tourism API
-    getIndiaPlacesData(type, selectedState).then((data) => {
+    getIndiaPlacesData(type, placeToSearch).then((data) => {
       setMainData(data);
-      setInterval(() => {
+      setTimeout(() => {
         setIsLoading(false);
       }, 1500);
     });

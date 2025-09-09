@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Free Geoapify API key for India tourism places (free tier: 3000 requests/day)
-const GEOAPIFY_API_KEY = "68db5c276a3e488cbaf7b8c10be0c65d";
+const GEOAPIFY_API_KEY = "YOUR_FREE_GEOAPIFY_API_KEY";
 
 export const getPlacesData = async (bl_lat, bl_lng, tr_lat, tr_lng, type) => {
   try {
@@ -34,7 +34,7 @@ export const getPlacesData = async (bl_lat, bl_lng, tr_lat, tr_lng, type) => {
 };
 
 // New function for India Tourism Places using free Geoapify API
-export const getIndiaPlacesData = async (type, place, limit = 20) => {
+export const getIndiaPlacesData = async (type, state = "Delhi", limit = 20) => {
   try {
     // Map your app types to Geoapify categories
     const categoryMap = {
@@ -50,7 +50,7 @@ export const getIndiaPlacesData = async (type, place, limit = 20) => {
       {
         params: {
           categories: category,
-          filter: `place:${place},India`,
+          filter: `place:${state},India`,
           limit: limit,
           apiKey: GEOAPIFY_API_KEY,
         },
@@ -58,32 +58,32 @@ export const getIndiaPlacesData = async (type, place, limit = 20) => {
     );
 
     // Transform Geoapify data to match your app's expected format
-    const transformedData = response.data.features?.map((placeResponse, index) => ({
-      location_id: placeResponse.properties.place_id || `india_${index}`,
-      name: placeResponse.properties.name || "Unknown Place",
-      location_string: `${placeResponse.properties.city || place}, ${placeResponse.properties.state || "India"}`,
-      description: placeResponse.properties.formatted || placeResponse.properties.name,
-      rating: placeResponse.properties.rating || "4.0",
-      num_reviews: placeResponse.properties.datasource?.raw?.["contact:website"] ? "100+" : "50+",
+    const transformedData = response.data.features?.map((place, index) => ({
+      location_id: place.properties.place_id || `india_${index}`,
+      name: place.properties.name || "Unknown Place",
+      location_string: `${place.properties.city || state}, ${place.properties.state || "India"}`,
+      description: place.properties.formatted || place.properties.name,
+      rating: place.properties.rating || "4.0",
+      num_reviews: place.properties.datasource?.raw?.["contact:website"] ? "100+" : "50+",
       photo: {
         images: {
           medium: {
-            url: placeResponse.properties.image || "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=300&fit=crop"
+            url: place.properties.image || "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=300&fit=crop"
           }
         }
       },
-      address: placeResponse.properties.formatted || `${place}, India`,
-      phone: placeResponse.properties.datasource?.raw?.phone || "",
-      website: placeResponse.properties.datasource?.raw?.website || "",
-      latitude: placeResponse.geometry.coordinates[1],
-      longitude: placeResponse.geometry.coordinates[0],
+      address: place.properties.formatted || `${state}, India`,
+      phone: place.properties.datasource?.raw?.phone || "",
+      website: place.properties.datasource?.raw?.website || "",
+      latitude: place.geometry.coordinates[1],
+      longitude: place.geometry.coordinates[0],
     })) || [];
 
     return transformedData;
   } catch (error) {
     console.log("India Places API Error:", error);
     // Return fallback India tourism data if API fails
-    return getIndiaFallbackData(type, place);
+    return getIndiaFallbackData(type, state);
   }
 };
 
@@ -197,175 +197,11 @@ const getIndiaFallbackData = (type, state) => {
   return fallbackData[type] || fallbackData.attractions;
 };
 
-// Function to get tour guides/guiders data
-export const getGuiders = (state = "Delhi") => {
-  const guidersData = {
-    Delhi: [
-      {
-        id: "guide_delhi_1",
-        name: "Rajesh Kumar",
-        location: "Delhi, India",
-        speciality: "Historical Sites & Heritage Tours",
-        languages: ["Hindi", "English", "Punjabi"],
-        experience: "8 years",
-        rating: "4.8",
-        reviews: "250+",
-        price_per_day: "₹2,500",
-        photo: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400&h=400&fit=crop&auto=format",
-        description: "Expert guide specializing in Mughal architecture and Delhi's rich history. Fluent in multiple languages with deep knowledge of local culture.",
-        contact: "+91 98765 43210",
-        verified: true,
-        tours_completed: 500
-      },
-      {
-        id: "guide_delhi_2",
-        name: "Priya Sharma",
-        location: "Delhi, India",
-        speciality: "Food Tours & Local Markets",
-        languages: ["Hindi", "English"],
-        experience: "5 years",
-        rating: "4.9",
-        reviews: "180+",
-        price_per_day: "₹2,000",
-        photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&auto=format",
-        description: "Passionate food enthusiast who knows the best street food spots and local markets in Delhi. Perfect for culinary adventures.",
-        contact: "+91 87654 32109",
-        verified: true,
-        tours_completed: 300
-      }
-    ],
-    Mumbai: [
-      {
-        id: "guide_mumbai_1",
-        name: "Arjun Patel",
-        location: "Mumbai, Maharashtra",
-        speciality: "Bollywood & Film City Tours",
-        languages: ["Hindi", "English", "Marathi"],
-        experience: "6 years",
-        rating: "4.7",
-        reviews: "320+",
-        price_per_day: "₹3,000",
-        photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&auto=format",
-        description: "Former film industry professional offering exclusive behind-the-scenes Bollywood tours and celebrity spotting experiences.",
-        contact: "+91 98765 12345",
-        verified: true,
-        tours_completed: 450
-      },
-      {
-        id: "guide_mumbai_2",
-        name: "Meera Joshi",
-        location: "Mumbai, Maharashtra",
-        speciality: "Heritage Walks & Architecture",
-        languages: ["Hindi", "English", "Marathi", "Gujarati"],
-        experience: "10 years",
-        rating: "4.9",
-        reviews: "400+",
-        price_per_day: "₹2,800",
-        photo: "https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=400&h=400&fit=crop&auto=format",
-        description: "Architecture historian specializing in colonial and Art Deco buildings of Mumbai. Author of several heritage walking guides.",
-        contact: "+91 87654 98765",
-        verified: true,
-        tours_completed: 600
-      }
-    ],
-    Rajasthan: [
-      {
-        id: "guide_rajasthan_1",
-        name: "Vikram Singh",
-        location: "Jaipur, Rajasthan",
-        speciality: "Royal Palaces & Desert Tours",
-        languages: ["Hindi", "English", "Rajasthani"],
-        experience: "12 years",
-        rating: "4.8",
-        reviews: "500+",
-        price_per_day: "₹3,500",
-        photo: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop",
-        description: "Royal family descendant with insider access to palaces and deep knowledge of Rajasthani culture, traditions, and desert landscapes.",
-        contact: "+91 94567 89012",
-        verified: true,
-        tours_completed: 800
-      }
-    ],
-    Kerala: [
-      {
-        id: "guide_kerala_1",
-        name: "Suresh Nair",
-        location: "Kochi, Kerala",
-        speciality: "Backwater Tours & Ayurveda",
-        languages: ["Malayalam", "English", "Tamil"],
-        experience: "7 years",
-        rating: "4.6",
-        reviews: "280+",
-        price_per_day: "₹2,200",
-        photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
-        description: "Ayurveda practitioner and backwater expert offering holistic wellness tours combined with Kerala's natural beauty.",
-        contact: "+91 95678 12345",
-        verified: true,
-        tours_completed: 350
-      }
-    ],
-    Goa: [
-      {
-        id: "guide_goa_1",
-        name: "Maria Fernandes",
-        location: "Panaji, Goa",
-        speciality: "Beach Tours & Portuguese Heritage",
-        languages: ["English", "Hindi", "Portuguese", "Konkani"],
-        experience: "4 years",
-        rating: "4.7",
-        reviews: "150+",
-        price_per_day: "₹2,000",
-        photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop",
-        description: "Local Goan with Portuguese ancestry offering authentic cultural experiences, beach activities, and historical church tours.",
-        contact: "+91 93456 78901",
-        verified: true,
-        tours_completed: 200
-      }
-    ],
-    "Tamil Nadu": [
-      {
-        id: "guide_tn_1",
-        name: "Karthik Raman",
-        location: "Chennai, Tamil Nadu",
-        speciality: "Temple Tours & Classical Arts",
-        languages: ["Tamil", "English", "Telugu"],
-        experience: "9 years",
-        rating: "4.8",
-        reviews: "380+",
-        price_per_day: "₹2,300",
-        photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
-        description: "Classical dancer and temple architecture expert offering spiritual and cultural tours of Tamil Nadu's ancient temples.",
-        contact: "+91 98234 56789",
-        verified: true,
-        tours_completed: 450
-      }
-    ],
-    "Uttar Pradesh": [
-      {
-        id: "guide_up_1",
-        name: "Amit Agarwal",
-        location: "Agra, Uttar Pradesh",
-        speciality: "Taj Mahal & Mughal History",
-        languages: ["Hindi", "English", "Urdu"],
-        experience: "11 years",
-        rating: "4.9",
-        reviews: "600+",
-        price_per_day: "₹3,000",
-        photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop",
-        description: "Mughal history specialist with exclusive access to restricted areas of Taj Mahal and Agra Fort. Certified by Archaeological Survey of India.",
-        contact: "+91 91234 56789",
-        verified: true,
-        tours_completed: 750
-      }
-    ]
-  };
-
-  return guidersData[state] || guidersData.Delhi || [];
-};
-
 // Search function for Indian cities and places
 export const searchIndianPlaces = async (searchQuery, type = "attractions") => {
   try {
+    // First try to match with our state list
+    const states = ["Delhi", "Mumbai", "Goa", "Rajasthan", "Kerala", "Tamil Nadu", "Uttar Pradesh"];
     const query = searchQuery.toLowerCase();
     
     // City to state mapping
@@ -388,33 +224,33 @@ export const searchIndianPlaces = async (searchQuery, type = "attractions") => {
       "lucknow": "Uttar Pradesh"
     };
     
-    // Check for a direct city match first
-    for (const [city, state] of Object.entries(cityToState)) {
-      if (query.includes(city)) {
-        return await getIndiaPlacesData(type, city);
-      }
-    }
+    let matchedState = null;
     
-    // If no city match, check for a state match
-    const states = ["Delhi", "Mumbai", "Goa", "Rajasthan", "Kerala", "Tamil Nadu", "Uttar Pradesh"];
+    // Try to find matching state
     for (const state of states) {
       if (query.includes(state.toLowerCase())) {
-        const stateToCityMap = {
-          "Rajasthan": "Jaipur",
-          "Kerala": "Kochi",
-          "Tamil Nadu": "Chennai",
-          "Uttar Pradesh": "Agra",
-          "Delhi": "Delhi",
-          "Mumbai": "Mumbai",
-          "Goa": "Goa"
-        };
-        const city = stateToCityMap[state] || state;
-        return await getIndiaPlacesData(type, city);
+        matchedState = state;
+        break;
       }
     }
     
-    // If no match found, default to a broad search on the query itself
-    return await getIndiaPlacesData(type, searchQuery);
+    // Try to find matching city
+    if (!matchedState) {
+      for (const [city, state] of Object.entries(cityToState)) {
+        if (query.includes(city)) {
+          matchedState = state;
+          break;
+        }
+      }
+    }
+    
+    // If we found a match, get places for that state
+    if (matchedState) {
+      return await getIndiaPlacesData(type, matchedState);
+    }
+    
+    // If no match found, return general India places
+    return await getIndiaPlacesData(type, "Delhi");
     
   } catch (error) {
     console.log("Search error:", error);

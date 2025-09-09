@@ -47,18 +47,22 @@ const ItemScreen = ({ route }) => {
           </View>
 
           <View className="absolute flex-row inset-x-0 bottom-5 justify-between px-6">
-            <View className="flex-row space-x-2 items-center">
-              <Text className="text-[12px] font-bold text-gray-100">
-                {data?.price_level}
-              </Text>
-              <Text className="text-[32px] font-bold text-gray-100">
-                {data?.price}
-              </Text>
-            </View>
+            {(data?.price_level || data?.price) && (
+              <View className="flex-row space-x-2 items-center">
+                <Text className="text-[12px] font-bold text-gray-100">
+                  {data?.price_level}
+                </Text>
+                <Text className="text-[32px] font-bold text-gray-100">
+                  {data?.price}
+                </Text>
+              </View>
+            )}
 
-            <View className="px-2 py-1 rounded-md bg-teal-100">
-              <Text>{data?.open_now_text}</Text>
-            </View>
+            {data?.open_now_text && (
+              <View className="px-2 py-1 rounded-md bg-teal-100">
+                <Text>{data?.open_now_text}</Text>
+              </View>
+            )}
           </View>
         </View>
 

@@ -11,6 +11,13 @@
   [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/Tech-Anshika/Tour-Travel-apk)
 </div>
 
+## 📲 Download APK
+
+### Direct Download Link
+You can download the latest version of the app from:
+- [Download Tour & Travel APK](https://expo.dev/artifacts/eas/q1m77qZtrLhv9pbfDKiN3G.apk)
+- [Alternative Download Link](application-c267b7dc-7b94-4732-8065-338bd638870c.apk)
+
 ## 🌟 Features
 
 ### 🔐 **Complete Authentication System**
