@@ -1,8 +1,7 @@
 import axios from "axios";
-import Database from "../database";
 
 // Free Geoapify API key for India tourism places (free tier: 3000 requests/day)
-const GEOAPIFY_API_KEY = "YOUR_FREE_GEOAPIFY_API_KEY";
+const GEOAPIFY_API_KEY = "68db5c276a3e488cbaf7b8c10be0c65d";
 
 export const getPlacesData = async (bl_lat, bl_lng, tr_lat, tr_lng, type) => {
   try {
@@ -34,18 +33,10 @@ export const getPlacesData = async (bl_lat, bl_lng, tr_lat, tr_lng, type) => {
   }
 };
 
-// Enhanced function for India Tourism Places using Database with API fallback
-export const getIndiaPlacesData = async (type, state = "Delhi", limit = 30) => {
+// New function for India Tourism Places using free Geoapify API
+export const getIndiaPlacesData = async (type, place, limit = 20) => {
   try {
-    // First try to get data from local database
-    const dbData = Database.getPlaces(state, type);
-    
-    if (dbData && dbData.length > 0) {
-      console.log(`Loaded ${dbData.length} ${type} from database for ${state}`);
-      return dbData.slice(0, limit);
-    }
-
-    // Fallback to API if database is empty
+    // Map your app types to Geoapify categories
     const categoryMap = {
       restaurants: "catering.restaurant",
       hotels: "accommodation.hotel",
@@ -59,7 +50,7 @@ export const getIndiaPlacesData = async (type, state = "Delhi", limit = 30) => {
       {
         params: {
           categories: category,
-          filter: `place:${state},India`,
+          filter: `place:${place},India`,
           limit: limit,
           apiKey: GEOAPIFY_API_KEY,
         },
@@ -67,483 +58,147 @@ export const getIndiaPlacesData = async (type, state = "Delhi", limit = 30) => {
     );
 
     // Transform Geoapify data to match your app's expected format
-    const transformedData = response.data.features?.map((place, index) => ({
-      location_id: place.properties.place_id || `api_${type}_${index}`,
-      name: place.properties.name || "Unknown Place",
-      location_string: `${place.properties.city || state}, ${place.properties.state || "India"}`,
-      description: place.properties.formatted || place.properties.name,
-      rating: place.properties.rating || "4.0",
-      num_reviews: place.properties.datasource?.raw?.["contact:website"] ? "100+" : "50+",
+    const transformedData = response.data.features?.map((placeResponse, index) => ({
+      location_id: placeResponse.properties.place_id || `india_${index}`,
+      name: placeResponse.properties.name || "Unknown Place",
+      location_string: `${placeResponse.properties.city || place}, ${placeResponse.properties.state || "India"}`,
+      description: placeResponse.properties.formatted || placeResponse.properties.name,
+      rating: placeResponse.properties.rating || "4.0",
+      num_reviews: placeResponse.properties.datasource?.raw?.["contact:website"] ? "100+" : "50+",
       photo: {
         images: {
           medium: {
-            url: place.properties.image || "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=300&fit=crop"
+            url: placeResponse.properties.image || "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=400&h=300&fit=crop"
           }
         }
       },
-      address: place.properties.formatted || `${state}, India`,
-      phone: place.properties.datasource?.raw?.phone || "",
-      website: place.properties.datasource?.raw?.website || "",
-      latitude: place.geometry.coordinates[1],
-      longitude: place.geometry.coordinates[0],
+      address: placeResponse.properties.formatted || `${place}, India`,
+      phone: placeResponse.properties.datasource?.raw?.phone || "",
+      website: placeResponse.properties.datasource?.raw?.website || "",
+      latitude: placeResponse.geometry.coordinates[1],
+      longitude: placeResponse.geometry.coordinates[0],
     })) || [];
 
     return transformedData;
   } catch (error) {
     console.log("India Places API Error:", error);
-    // Return database data as final fallback
-    return Database.getPlaces(state, type).slice(0, limit);
+    // Return fallback India tourism data if API fails
+    return getIndiaFallbackData(type, place);
   }
 };
 
-// Enhanced fallback data with more places for each category and state
+// Fallback data for popular India tourism places
 const getIndiaFallbackData = (type, state) => {
-  const stateBasedData = {
-    Delhi: {
+  const fallbackData = {
     attractions: [
       {
-          location_id: "delhi_red_fort",
+        location_id: "india_taj_mahal",
+        name: "Taj Mahal",
+        location_string: "Agra, Uttar Pradesh",
+        description: "UNESCO World Heritage Site and symbol of love",
+        rating: "4.8",
+        num_reviews: "50000+",
+        photo: {
+          images: {
+            medium: {
+              url: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=400&h=300&fit=crop"
+            }
+          }
+        },
+        address: "Agra, Uttar Pradesh, India",
+      },
+      {
+        location_id: "india_red_fort",
         name: "Red Fort",
         location_string: "Delhi, Delhi",
         description: "Historic fortified palace and UNESCO World Heritage Site",
         rating: "4.5",
         num_reviews: "25000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400&h=300&fit=crop" } } },
-          address: "Delhi, India",
+        photo: {
+          images: {
+            medium: {
+              url: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400&h=300&fit=crop"
+            }
+          }
         },
-        {
-          location_id: "delhi_india_gate",
-          name: "India Gate",
-          location_string: "Delhi, Delhi",
-          description: "War memorial and iconic landmark",
-          rating: "4.4",
-          num_reviews: "35000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1599661046827-dacde6c20adb?w=400&h=300&fit=crop" } } },
-          address: "Rajpath, Delhi, India",
+        address: "Delhi, India",
+      },
+      {
+        location_id: "india_gateway",
+        name: "Gateway of India",
+        location_string: "Mumbai, Maharashtra",
+        description: "Iconic arch monument overlooking the Arabian Sea",
+        rating: "4.3",
+        num_reviews: "30000+",
+        photo: {
+          images: {
+            medium: {
+              url: "https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=400&h=300&fit=crop"
+            }
+          }
         },
-        {
-          location_id: "delhi_lotus_temple",
-          name: "Lotus Temple",
-          location_string: "Delhi, Delhi",
-          description: "Beautiful Baháʼí House of Worship",
-          rating: "4.6",
-          num_reviews: "20000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=400&h=300&fit=crop" } } },
-          address: "Lotus Temple Rd, Delhi, India",
-        },
-        {
-          location_id: "delhi_qutub_minar",
-          name: "Qutub Minar",
-          location_string: "Delhi, Delhi",
-          description: "UNESCO World Heritage Site and tallest brick minaret",
-          rating: "4.3",
-          num_reviews: "15000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop" } } },
-          address: "Mehrauli, Delhi, India",
+        address: "Mumbai, Maharashtra, India",
       }
     ],
     restaurants: [
       {
-          location_id: "delhi_karims",
+        location_id: "india_restaurant_1",
         name: "Karim's",
         location_string: "Delhi, Delhi",
         description: "Authentic Mughlai cuisine since 1913",
         rating: "4.2",
         num_reviews: "5000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop" } } },
-          address: "Jama Masjid, Delhi, India",
+        photo: {
+          images: {
+            medium: {
+              url: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop"
+            }
+          }
         },
-        {
-          location_id: "delhi_bukhara",
-          name: "Bukhara",
-          location_string: "Delhi, Delhi",
-          description: "World-famous North Indian restaurant",
-          rating: "4.7",
-          num_reviews: "8000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1567337712385-da821b4bb6e3?w=400&h=300&fit=crop" } } },
-          address: "ITC Maurya, Delhi, India",
-        },
-        {
-          location_id: "delhi_paranthe",
-          name: "Paranthe Wali Gali",
-          location_string: "Delhi, Delhi",
-          description: "Famous street food destination",
-          rating: "4.0",
-          num_reviews: "3000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400&h=300&fit=crop" } } },
-          address: "Chandni Chowk, Delhi, India",
-        }
-      ],
-      hotels: [
-        {
-          location_id: "delhi_oberoi",
-          name: "The Oberoi New Delhi",
-          location_string: "Delhi, Delhi",
-          description: "Luxury hotel with world-class amenities",
-          rating: "4.7",
-          num_reviews: "8000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop" } } },
-          address: "Dr. Zakir Hussain Marg, Delhi, India",
-        },
-        {
-          location_id: "delhi_leela",
-          name: "The Leela Palace New Delhi",
-          location_string: "Delhi, Delhi",
-          description: "Opulent luxury hotel with royal architecture",
-          rating: "4.8",
-          num_reviews: "6000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=300&fit=crop" } } },
-          address: "Diplomatic Enclave, Delhi, India",
-        }
-      ]
-    },
-    Mumbai: {
-      attractions: [
-        {
-          location_id: "mumbai_gateway",
-          name: "Gateway of India",
-          location_string: "Mumbai, Maharashtra",
-          description: "Iconic arch monument overlooking the Arabian Sea",
-          rating: "4.3",
-          num_reviews: "30000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1595658658481-d53d3f999875?w=400&h=300&fit=crop" } } },
-          address: "Mumbai, Maharashtra, India",
-        },
-        {
-          location_id: "mumbai_marine_drive",
-          name: "Marine Drive",
-          location_string: "Mumbai, Maharashtra",
-          description: "Famous waterfront promenade",
-          rating: "4.4",
-          num_reviews: "25000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?w=400&h=300&fit=crop" } } },
-          address: "Marine Drive, Mumbai, India",
-        },
-        {
-          location_id: "mumbai_elephanta",
-          name: "Elephanta Caves",
-          location_string: "Mumbai, Maharashtra",
-          description: "UNESCO World Heritage rock-cut caves",
-          rating: "4.2",
-          num_reviews: "15000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=400&h=300&fit=crop" } } },
-          address: "Elephanta Island, Mumbai, India",
-        }
-      ],
-      restaurants: [
-        {
-          location_id: "mumbai_trishna",
+        address: "Jama Masjid, Delhi, India",
+      },
+      {
+        location_id: "india_restaurant_2",
         name: "Trishna",
         location_string: "Mumbai, Maharashtra",
         description: "Contemporary Indian seafood restaurant",
         rating: "4.6",
         num_reviews: "3000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1567337712385-da821b4bb6e3?w=400&h=300&fit=crop" } } },
-          address: "Fort, Mumbai, Maharashtra, India",
+        photo: {
+          images: {
+            medium: {
+              url: "https://images.unsplash.com/photo-1567337712385-da821b4bb6e3?w=400&h=300&fit=crop"
+            }
+          }
         },
-        {
-          location_id: "mumbai_leopold",
-          name: "Leopold Cafe",
-          location_string: "Mumbai, Maharashtra",
-          description: "Historic cafe and backpacker hangout",
-          rating: "4.1",
-          num_reviews: "5000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop" } } },
-          address: "Colaba, Mumbai, India",
-        }
-      ],
-      hotels: [
-        {
-          location_id: "mumbai_taj",
-          name: "The Taj Mahal Palace",
-          location_string: "Mumbai, Maharashtra",
-          description: "Iconic luxury heritage hotel",
-          rating: "4.8",
-          num_reviews: "12000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1578774204375-826dc5d996ed?w=400&h=300&fit=crop" } } },
-          address: "Apollo Bunder, Mumbai, India",
-        }
-      ]
-    },
-    "Uttar Pradesh": {
-      attractions: [
-        {
-          location_id: "up_taj_mahal",
-          name: "Taj Mahal",
-          location_string: "Agra, Uttar Pradesh",
-          description: "UNESCO World Heritage Site and symbol of love",
-          rating: "4.8",
-          num_reviews: "50000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=400&h=300&fit=crop" } } },
-          address: "Agra, Uttar Pradesh, India",
-        },
-        {
-          location_id: "up_agra_fort",
-          name: "Agra Fort",
-          location_string: "Agra, Uttar Pradesh",
-          description: "UNESCO World Heritage Mughal fort",
-          rating: "4.5",
-          num_reviews: "20000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=400&h=300&fit=crop" } } },
-          address: "Agra, Uttar Pradesh, India",
-        },
-        {
-          location_id: "up_varanasi_ghats",
-          name: "Varanasi Ghats",
-          location_string: "Varanasi, Uttar Pradesh",
-          description: "Sacred steps leading to the Ganges River",
-          rating: "4.6",
-          num_reviews: "18000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?w=400&h=300&fit=crop" } } },
-          address: "Varanasi, Uttar Pradesh, India",
-        }
-      ],
-      restaurants: [
-        {
-          location_id: "up_pinch_of_spice",
-          name: "Pinch of Spice",
-          location_string: "Agra, Uttar Pradesh",
-          description: "Popular North Indian restaurant",
-          rating: "4.3",
-          num_reviews: "2500+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400&h=300&fit=crop" } } },
-          address: "Fatehabad Road, Agra, India",
-        }
-      ],
-      hotels: [
-        {
-          location_id: "up_oberoi_amarvilas",
-          name: "The Oberoi Amarvilas",
-          location_string: "Agra, Uttar Pradesh",
-          description: "Luxury hotel with Taj Mahal views",
-          rating: "4.9",
-          num_reviews: "5000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop" } } },
-          address: "Taj East Gate Road, Agra, India",
-        }
-      ]
-    },
-    Rajasthan: {
-      attractions: [
-        {
-          location_id: "raj_hawa_mahal",
-          name: "Hawa Mahal",
-          location_string: "Jaipur, Rajasthan",
-          description: "Palace of Winds with intricate facade",
-          rating: "4.4",
-          num_reviews: "22000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1599661046827-dacde6c20adb?w=400&h=300&fit=crop" } } },
-          address: "Jaipur, Rajasthan, India",
-        },
-        {
-          location_id: "raj_amber_fort",
-          name: "Amber Fort",
-          location_string: "Jaipur, Rajasthan",
-          description: "Magnificent hilltop fort palace",
-          rating: "4.6",
-          num_reviews: "28000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop" } } },
-          address: "Amer, Jaipur, Rajasthan, India",
-        },
-        {
-          location_id: "raj_city_palace",
-          name: "City Palace Udaipur",
-          location_string: "Udaipur, Rajasthan",
-          description: "Royal palace complex on Lake Pichola",
-          rating: "4.7",
-          num_reviews: "15000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=400&h=300&fit=crop" } } },
-          address: "Udaipur, Rajasthan, India",
-        }
-      ],
-      restaurants: [
-        {
-          location_id: "raj_lmb",
-          name: "LMB (Laxmi Misthan Bhandar)",
-          location_string: "Jaipur, Rajasthan",
-          description: "Famous Rajasthani sweets and cuisine",
-          rating: "4.2",
-          num_reviews: "4000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400&h=300&fit=crop" } } },
-          address: "Johari Bazaar, Jaipur, India",
-        }
-      ],
-      hotels: [
-        {
-          location_id: "raj_taj_lake_palace",
-          name: "Taj Lake Palace",
-          location_string: "Udaipur, Rajasthan",
-          description: "Floating palace hotel on Lake Pichola",
-          rating: "4.9",
-          num_reviews: "8000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1578774204375-826dc5d996ed?w=400&h=300&fit=crop" } } },
-          address: "Pichola Lake, Udaipur, India",
-        }
-      ]
-    },
-    Kerala: {
-      attractions: [
-        {
-          location_id: "kerala_backwaters",
-          name: "Alleppey Backwaters",
-          location_string: "Alleppey, Kerala",
-          description: "Serene network of canals and lagoons",
-          rating: "4.6",
-          num_reviews: "18000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=400&h=300&fit=crop" } } },
-          address: "Alleppey, Kerala, India",
-        },
-        {
-          location_id: "kerala_munnar",
-          name: "Munnar Tea Gardens",
-          location_string: "Munnar, Kerala",
-          description: "Picturesque hill station with tea plantations",
-          rating: "4.5",
-          num_reviews: "25000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=400&h=300&fit=crop" } } },
-          address: "Munnar, Kerala, India",
-        }
-      ],
-      restaurants: [
-        {
-          location_id: "kerala_dal_roti",
-          name: "Dal Roti",
-          location_string: "Kochi, Kerala",
-          description: "Authentic Kerala cuisine",
-          rating: "4.3",
-          num_reviews: "2000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1567337712385-da821b4bb6e3?w=400&h=300&fit=crop" } } },
-          address: "Fort Kochi, Kerala, India",
+        address: "Fort, Mumbai, Maharashtra, India",
       }
     ],
     hotels: [
       {
-          location_id: "kerala_kumarakom",
-          name: "Kumarakom Lake Resort",
-          location_string: "Kumarakom, Kerala",
-          description: "Luxury backwater resort",
+        location_id: "india_hotel_1",
+        name: "The Oberoi New Delhi",
+        location_string: "Delhi, Delhi",
+        description: "Luxury hotel with world-class amenities",
         rating: "4.7",
-          num_reviews: "4500+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=300&fit=crop" } } },
-          address: "Kumarakom, Kerala, India",
-        }
-      ]
-    },
-    Goa: {
-      attractions: [
-        {
-          location_id: "goa_baga_beach",
-          name: "Baga Beach",
-          location_string: "North Goa, Goa",
-          description: "Popular beach with water sports and nightlife",
-          rating: "4.2",
-          num_reviews: "15000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=300&fit=crop" } } },
-          address: "Baga, North Goa, India",
-        },
-        {
-          location_id: "goa_basilica",
-          name: "Basilica of Bom Jesus",
-          location_string: "Old Goa, Goa",
-          description: "UNESCO World Heritage baroque church",
-          rating: "4.4",
         num_reviews: "8000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=400&h=300&fit=crop" } } },
-          address: "Old Goa, Goa, India",
-        }
-      ],
-      restaurants: [
-        {
-          location_id: "goa_fishermans_wharf",
-          name: "Fisherman's Wharf",
-          location_string: "Goa, Goa",
-          description: "Seafood restaurant with Goan specialties",
-          rating: "4.3",
-          num_reviews: "3500+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1567337712385-da821b4bb6e3?w=400&h=300&fit=crop" } } },
-          address: "Cavelossim, Goa, India",
-        }
-      ],
-      hotels: [
-        {
-          location_id: "goa_taj_exotica",
-          name: "Taj Exotica Resort & Spa",
-          location_string: "South Goa, Goa",
-          description: "Luxury beach resort",
-          rating: "4.6",
-          num_reviews: "7000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1578774204375-826dc5d996ed?w=400&h=300&fit=crop" } } },
-          address: "Benaulim, South Goa, India",
-        }
-      ]
-    },
-    "Tamil Nadu": {
-      attractions: [
-        {
-          location_id: "tn_meenakshi",
-          name: "Meenakshi Temple",
-          location_string: "Madurai, Tamil Nadu",
-          description: "Historic Hindu temple with intricate architecture",
-          rating: "4.7",
-          num_reviews: "20000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1605649487212-47bdab064df7?w=400&h=300&fit=crop" } } },
-          address: "Madurai, Tamil Nadu, India",
+        photo: {
+          images: {
+            medium: {
+              url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop"
+            }
+          }
         },
-        {
-          location_id: "tn_marina_beach",
-          name: "Marina Beach",
-          location_string: "Chennai, Tamil Nadu",
-          description: "One of the longest urban beaches in the world",
-          rating: "4.1",
-          num_reviews: "25000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=300&fit=crop" } } },
-          address: "Chennai, Tamil Nadu, India",
-        }
-      ],
-      restaurants: [
-        {
-          location_id: "tn_saravana_bhavan",
-          name: "Saravana Bhavan",
-          location_string: "Chennai, Tamil Nadu",
-          description: "Famous South Indian vegetarian restaurant chain",
-          rating: "4.4",
-          num_reviews: "8000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400&h=300&fit=crop" } } },
-          address: "Chennai, Tamil Nadu, India",
-        }
-      ],
-      hotels: [
-        {
-          location_id: "tn_itc_grand_chola",
-          name: "ITC Grand Chola",
-          location_string: "Chennai, Tamil Nadu",
-          description: "Luxury hotel with South Indian architecture",
-          rating: "4.6",
-          num_reviews: "6000+",
-          photo: { images: { medium: { url: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=300&fit=crop" } } },
-          address: "Guindy, Chennai, India",
-        }
-      ]
-    }
+        address: "Dr. Zakir Hussain Marg, Delhi, India",
+      }
+    ]
   };
 
-  // Return data for the specified state, or Delhi as fallback
-  const stateData = stateBasedData[state] || stateBasedData.Delhi;
-  return stateData[type] || stateData.attractions || [];
+  return fallbackData[type] || fallbackData.attractions;
 };
 
-// Enhanced function to get tour guides/guiders data from Database
-export const getGuiders = (state = "Delhi", filters = {}) => {
-  try {
-    return Database.getGuides(state, filters);
-  } catch (error) {
-    console.log("Error fetching guides from database:", error);
-    return getGuidersFromStaticData(state);
-  }
-};
-
-// Fallback function for static guider data
-const getGuidersFromStaticData = (state = "Delhi") => {
+// Function to get tour guides/guiders data
+export const getGuiders = (state = "Delhi") => {
   const guidersData = {
     Delhi: [
       {
@@ -708,18 +363,9 @@ const getGuidersFromStaticData = (state = "Delhi") => {
   return guidersData[state] || guidersData.Delhi || [];
 };
 
-// Enhanced search function using Database
+// Search function for Indian cities and places
 export const searchIndianPlaces = async (searchQuery, type = "attractions") => {
   try {
-    // Use database global search for comprehensive results
-    const searchResults = Database.globalSearch(searchQuery, { category: type });
-    
-    if (searchResults.places && searchResults.places.length > 0) {
-      return searchResults.places.filter(place => place.category === type);
-    }
-
-    // Fallback to state-based search
-    const states = ["Delhi", "Mumbai", "Goa", "Rajasthan", "Kerala", "Tamil Nadu", "Uttar Pradesh"];
     const query = searchQuery.toLowerCase();
     
     // City to state mapping
@@ -742,45 +388,36 @@ export const searchIndianPlaces = async (searchQuery, type = "attractions") => {
       "lucknow": "Uttar Pradesh"
     };
     
-    let matchedState = null;
+    // Check for a direct city match first
+    for (const [city, state] of Object.entries(cityToState)) {
+      if (query.includes(city)) {
+        return await getIndiaPlacesData(type, city);
+      }
+    }
     
-    // Try to find matching state
+    // If no city match, check for a state match
+    const states = ["Delhi", "Mumbai", "Goa", "Rajasthan", "Kerala", "Tamil Nadu", "Uttar Pradesh"];
     for (const state of states) {
       if (query.includes(state.toLowerCase())) {
-        matchedState = state;
-        break;
+        const stateToCityMap = {
+          "Rajasthan": "Jaipur",
+          "Kerala": "Kochi",
+          "Tamil Nadu": "Chennai",
+          "Uttar Pradesh": "Agra",
+          "Delhi": "Delhi",
+          "Mumbai": "Mumbai",
+          "Goa": "Goa"
+        };
+        const city = stateToCityMap[state] || state;
+        return await getIndiaPlacesData(type, city);
       }
     }
     
-    // Try to find matching city
-    if (!matchedState) {
-      for (const [city, state] of Object.entries(cityToState)) {
-        if (query.includes(city)) {
-          matchedState = state;
-          break;
-        }
-      }
-    }
-    
-    // If we found a match, get places for that state
-    if (matchedState) {
-      return await getIndiaPlacesData(type, matchedState);
-    }
-    
-    // If no match found, return general India places
-    return await getIndiaPlacesData(type, "Delhi");
+    // If no match found, default to a broad search on the query itself
+    return await getIndiaPlacesData(type, searchQuery);
     
   } catch (error) {
     console.log("Search error:", error);
-    return Database.getPlaces("Delhi", type);
+    return getIndiaFallbackData(type, "Delhi");
   }
 };
-
-// Export additional database functions for advanced usage
-export const {
-  getPlaceById,
-  getGuideById,
-  getPopularDestinations,
-  getStats,
-  globalSearch
-} = Database;
