@@ -1,0 +1,5 @@
+[33m07f1385[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m feat: update API integration with Geoapify and add guide data
+[33me18a6d6[m docs: add direct APK download link to README
+[33m164965e[m feat(api): Add enhanced India tourism API integration with city mapping
+[33m953f5cb[m feat(api): Enhance API integration with Geoapify Places API and add Indian places support
+[33m6562256[m Fix expo build cache issue and dependencies reinstall

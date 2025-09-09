@@ -168,10 +168,6 @@ npx expo start
 Share the QR code with friends (same WiFi required)
 
 ### Option 2: Android APK Build
-
-📱 **Download Latest APK**: [Click here to download](https://expo.dev/artifacts/eas/q1m77qZtrLhv9pbfDKiN3G.apk)
-
-Or build from source:
 ```bash
 # Install EAS CLI
 npm install -g eas-cli
