@@ -225,3 +225,26 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **GitHub**: [@Tech-Anshika](https://github.com/Tech-Anshika)
 - **Issues**: [Report a Bug](https://github.com/Tech-Anshika/Tour-Travel-apk/issues)
 
+## 🗺️ Roadmap
+
+- [ ] **v2.0**: Hotel booking integration
+- [ ] **v2.1**: Flight booking system
+- [ ] **v2.2**: Travel itinerary planner
+- [ ] **v2.3**: Social features and reviews
+- [ ] **v2.4**: AR-based navigation
+- [ ] **v3.0**: AI travel recommendations
+
+---
+
+<div align="center">
+  <h3>🎉 Happy Traveling! Explore Incredible India! 🇮🇳</h3>
+  
+  **Made with ❤️ by [Anshika](https://github.com/Tech-Anshika)**
+
+  ## 📥 APK Download
+
+[Download Application](application-c267b7dc-7b94-4732-8065-338bd638870c.apk)
+
+  
+  ⭐ Star this repo if you found it helpful!
+</div># Tour-Travel-apk
